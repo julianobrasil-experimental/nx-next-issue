@@ -19,4 +19,23 @@ const plugins = [
   withNx,
 ];
 
-module.exports = composePlugins(...plugins)(nextConfig);
+const importDynamicCode = async () => {
+  const a = './dyn-code.js';
+  return import(a);
+};
+
+module.exports = async (/** @type {string} */ phase) => {
+  // This is a workaround to avoid running the dynamic code during the build phase.
+  // to prevent the configurations from being executed before the dependency task
+  // is executed.
+  // if (
+  //   process.env.NEXT_DEPLOYMENT_ID === undefined && // build
+  //   process.env.__NEXT_PROCESSED_ENV === undefined // development
+  // ) {
+  //   /** @type {import("next").NextConfig} */
+  //   const r = {};
+  //   return r;
+  // }
+  await importDynamicCode();
+  return composePlugins(...plugins)(nextConfig)(phase);
+};
